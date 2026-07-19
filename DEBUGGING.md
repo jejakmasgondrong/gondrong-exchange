@@ -155,3 +155,12 @@ This file documents errors encountered during the development of Gondrong Exchan
   3. The root cause analysis and final fix for the `pointer-events`/overlay blocking issue will be conducted in the isolated repo.
   4. Once the fix is verified in the sandbox, it will be cleanly ported back to `gondrong-exchange`.
 - **Why this matters**: This approach demonstrates risk management, separation of concerns, and the ability to use Minimal Reproducible Examples (MRE) to solve complex environment-specific bugs without breaking existing features.
+
+---
+## 2026-07-19 - UI Feature Completion Despite Blocking Bug
+- **Context**: Unresponsive button issue (overlay/pointer-events) remains unresolved in the main repo.
+- **Decision**: Proceeded with UI/UX feature development (Step 5: Token Selector Modal) to ensure the landing page and core swap interface are visually and logically complete.
+- **Action**: 
+  - Finalized `components/TokenSelectorModal.tsx` with search and filtering logic.
+  - Finalized `components/SwapCard.tsx` with state management for token selection, amount calculation, and flip logic.
+- **Status**: UI is 100% ready. Functionality will be fully verified once the click-blocking bug is fixed via the isolated `gondrong-wallet-test` repository.
