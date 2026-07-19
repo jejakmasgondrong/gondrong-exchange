@@ -22,3 +22,83 @@ This file documents errors encountered during the development of Gondrong Exchan
   1. Membuat file baru bernama `providers.tsx` secara manual di dalam folder `app/`.
   2. Menyalin kode konfigurasi `ConnectionProvider` dan `WalletProvider` (mengarah ke Devnet) ke dalam file tersebut.
   3. Menyimpan file (`Ctrl + S`) agar Next.js Turbopack mendeteksi perubahan dan melakukan hot-reload.
+
+  # Debugging Log - Overlay Blocking Issue
+
+**Tanggal:** 2026-07-19
+**Issue:** Semua tombol tidak responsif (SOL selector, Connect Wallet, dll)
+
+---
+
+## ✅ STEP 1: Hipotesis Awal
+**Hipotesis:** Ada overlay/div transparan yang menutupi seluruh halaman
+**Prioritas:** HIGH
+
+---
+
+## ✅ STEP 2: Debug Button Test
+**Test:** Menambahkan tombol debug merah di pojok kanan bawah
+**File:** `app/page.tsx`
+
+**Hasil:** 
+- ✅ Tombol debug MUNCUL di layar
+-  Tombol debug TIDAK BISA DIKLIK
+
+**Kesimpulan:**
+- ✅ CONFIRMED: Ada elemen overlay yang memblokir SELURUH halaman
+- Overlay memiliki z-index lebih tinggi dari tombol debug (z-[99999])
+- Overlay kemungkinan menggunakan `position: fixed` atau `position: absolute`
+
+---
+
+## 🔍 STEP 3: Next Actions (Belum Dilakukan)
+- [ ] Inspect Element untuk cari element overlay
+- [ ] Cek file `app/layout.tsx` untuk elemen fullscreen
+- [ ] Cek file `app/globals.css` untuk CSS yang blocking
+- [ ] Cek komponen `Providers.tsx` atau wallet adapter
+
+---
+
+## 📊 Timeline
+- [x] Step 1: Create debug branch
+- [x] Step 2: Add debug button & test
+- [ ] Step 3: Inspect Element
+- [ ] Step 4: Find & fix overlay
+- [ ] Step 5: Verify fix
+- [ ] Step 6: Cleanup & merge
+
+---
+
+## 2026-07-19 - All Buttons Unresponsive (Overlay Blocking Issue)
+
+- **Error**: Semua tombol di halaman (SOL selector, Connect Wallet, debug button) tidak bisa diklik sama sekali. Tombol terlihat normal tapi tidak ada respons saat diklik.
+
+- **Cause**: 
+  1. **Root Cause**: Class CSS `h-full` di tag `<html>` dan `min-h-full` di tag `<body>` pada file `app/layout.tsx` menyebabkan overflow dan stacking context yang salah.
+  2. Class `h-full` memaksa html element memiliki tinggi 100% dari parent, yang bisa menyebabkan element child (termasuk tombol) ter-render di luar viewport atau tertutup oleh layer lain.
+  3. Class `min-h-full` di body memperparah masalah dengan membuat body selalu minimal setinggi layar, yang bisa konflik dengan konten yang lebih panjang.
+  4. Tidak ada `suppressHydrationWarning` di tag `<html>`, yang bisa menyebabkan warning hydration yang mengganggu rendering.
+
+- **Solution**:
+  1. **Identifikasi**: Membuat debug button dengan `z-[99999]` di pojok kanan bawah untuk test apakah ada overlay yang memblokir.
+  2. **Konfirmasi**: Debug button muncul tapi tidak bisa diklik → confirmed ada overlay/layer blocking.
+  3. **Comparison**: Membandingkan `app/layout.tsx` dengan reference project (Ah-Riz/obelisk-week1-starter) yang tombolnya berfungsi normal.
+  4. **Perbedaan ditemukan**:
+     - Reference: `<html lang="en" suppressHydrationWarning>` + `<body className="antialiased">`
+     - Ours: `<html className="... h-full antialiased">` + `<body className="min-h-full flex flex-col">`
+  5. **Fix**: 
+     - Menghapus `h-full` dari tag `<html>`
+     - Menghapus `min-h-full` dari tag `<body>`
+     - Menambahkan `suppressHydrationWarning` ke tag `<html>`
+     - Mempertahankan `flex flex-col` di body untuk layout yang sudah ada
+  6. **Result**: Tombol kembali berfungsi normal setelah perubahan.
+
+- **Files Modified**:
+  - `app/layout.tsx` - Removed `h-full` and `min-h-full` classes, added `suppressHydrationWarning`
+  - `app/page.tsx` - Added debug button for testing (to be removed after fix confirmed)
+
+- **Lessons Learned**:
+  - Class `h-full` dan `min-h-full` di html/body bisa menyebabkan masalah stacking context yang tidak terduga
+  - Selalu bandingkan dengan reference project yang berfungsi saat遇到 masalah yang tidak jelas
+  - Debug button dengan z-index sangat tinggi adalah cara cepat untuk test apakah ada overlay blocking
+  - Dokumentasi debugging yang baik membantu tracking progress dan lessons learned

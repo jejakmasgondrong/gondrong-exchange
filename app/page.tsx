@@ -5,6 +5,9 @@ import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { useEffect, useState } from "react";
 
+// 1. TAMBAHKAN IMPORT INI DI SINI
+import SwapCard from "@/components/SwapCard";
+
 export default function Home() {
   const { publicKey } = useWallet();
   const { connection } = useConnection();
@@ -56,48 +59,51 @@ export default function Home() {
         {/* Background gradient effect */}
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-zinc-950 to-pink-900/20 pointer-events-none"></div>
         
-        <div className="relative max-w-7xl mx-auto px-6 py-32">
-          <div className="text-center">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-900/80 border border-zinc-800 mb-8">
-              <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-              <span className="text-sm text-zinc-300">Live on Solana Devnet</span>
-            </div>
-
-            {/* Main Title with Gradient */}
-            <h1 className="text-6xl md:text-7xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
-                Gondrong Exchange
-              </span>
-            </h1>
-
-            {/* Subtitle */}
-            <p className="text-xl text-zinc-400 max-w-2xl mx-auto mb-12">
-              The fastest way to swap tokens on Solana. Zero friction, maximum gondrong power.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-              <button className="px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105 shadow-lg shadow-purple-500/25">
-                Start Trading
-              </button>
-              <button className="px-8 py-4 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 font-semibold hover:bg-zinc-800 hover:border-zinc-700 transition-all">
-                View Markets
-              </button>
-            </div>
-
-            {/* Wallet Connection Info */}
-            {truncatedAddress && (
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-900/50 border border-zinc-800">
-                <span className="text-zinc-400">Connected:</span>
-                <span className="text-zinc-200 font-mono text-sm">{truncatedAddress}</span>
-                {balance !== null && (
-                  <span className="text-emerald-400 text-sm ml-2">
-                    ({balance.toFixed(4)} SOL)
-                  </span>
-                )}
+        <div className="relative max-w-7xl mx-auto px-6 py-20 lg:py-32">
+          
+          {/* 2. UBAH BAGIAN INI: Dari text-center menjadi Flex 2 Kolom (Kiri: Teks, Kanan: SwapCard) */}
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20">
+            
+            {/* KOLOM KIRI: Teks & Info */}
+            <div className="flex-1 text-center lg:text-left">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-900/80 border border-zinc-800 mb-8">
+                <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                <span className="text-sm text-zinc-300">Live on Solana Devnet</span>
               </div>
-            )}
+
+              {/* Main Title with Gradient */}
+              <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+                Swap Tokens with <br />
+                <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
+                  Maximum Gondrong Power
+                </span>
+              </h1>
+
+              {/* Subtitle */}
+              <p className="text-xl text-zinc-400 max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed">
+                The fastest way to swap tokens on Solana. Zero friction, deep liquidity, and minimal fees.
+              </p>
+
+              {/* Wallet Connection Info */}
+              {truncatedAddress && (
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-900/50 border border-zinc-800">
+                  <span className="text-zinc-400">Connected:</span>
+                  <span className="text-zinc-200 font-mono text-sm">{truncatedAddress}</span>
+                  {balance !== null && (
+                    <span className="text-emerald-400 text-sm ml-2">
+                      ({balance.toFixed(4)} SOL)
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* KOLOM KANAN: Swap Card Component */}
+            <div className="flex-1 w-full max-w-md">
+              <SwapCard />
+            </div>
+
           </div>
         </div>
       </section>
@@ -140,6 +146,19 @@ export default function Home() {
           </div>
         </div>
       </section>
+            {/* ========================================== */}
+      {/* DEBUG BUTTON - STEP 2: TEST OVERLAY BLOCKING */}
+      {/* ========================================== */}
+      <button
+        onClick={() => {
+          console.log("✅ DEBUG BUTTON CLICKED!");
+          alert("Tombol merah berhasil diklik! Berarti TIDAK ADA overlay yang memblokir seluruh halaman.");
+        }}
+        className="fixed bottom-8 right-8 z-[99999] px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-2xl border-2 border-white"
+        style={{ pointerEvents: 'auto' }}
+      >
+        🔴 DEBUG TEST
+      </button>
     </main>
   );
 }
