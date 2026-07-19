@@ -114,3 +114,13 @@ This file documents errors encountered during the development of Gondrong Exchan
   1. Audit file `app/providers.tsx` dan bandingkan dengan `components/app-providers.tsx` di reference project.
   2. Cek apakah ada modal atau backdrop yang ter-render secara default tanpa kondisi `if (!isOpen) return null`.
   3. Gunakan DevTools untuk inspect elemen spesifik di sekitar tombol yang tidak bisa diklik.
+
+  ---
+## 2026-07-19 - Audit Providers: Suspecting WalletModalProvider Overlay
+- **Error**: Tombol masih tidak responsif setelah fix layout dan globals.css.
+- **Cause**: 
+  1. Perbedaan mencolok ditemukan di `app/providers.tsx`. Reference project menggunakan custom `SolanaProvider`, sedangkan project kita menggunakan `WalletModalProvider` dari `@solana/wallet-adapter-react-ui` beserta CSS bawaannya (`styles.css`).
+  2. `WalletModalProvider` diketahui menyuntikkan elemen modal ke DOM. Diduga CSS atau state default dari provider ini menciptakan overlay transparan (backdrop) yang memblokir `pointer-events` di seluruh halaman.
+- **Solution / Next Action**: 
+  1. Melakukan isolasi dengan meng-comment out sementara `WalletModalProvider` dan import CSS-nya di `app/providers.tsx`.
+  2. Jika tombol kembali bisa diklik, berarti konfirmasi 100% masalah ada di Wallet Adapter UI. Solusinya adalah mengganti dengan custom modal atau memperbaiki z-index CSS wallet adapter.
