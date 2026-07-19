@@ -102,3 +102,15 @@ This file documents errors encountered during the development of Gondrong Exchan
   - Selalu bandingkan dengan reference project yang berfungsi saat遇到 masalah yang tidak jelas
   - Debug button dengan z-index sangat tinggi adalah cara cepat untuk test apakah ada overlay blocking
   - Dokumentasi debugging yang baik membantu tracking progress dan lessons learned
+
+  ---
+## 2026-07-19 - Buttons Still Unresponsive After Layout & CSS Fixes
+- **Error**: Tombol (SOL selector, Connect Wallet, Debug Button) masih 100% tidak bisa diklik setelah menyamakan `app/layout.tsx` dan `app/globals.css` dengan reference project.
+- **Cause**: 
+  1. Masalah bukan di global CSS (`pointer-events`, `h-full`, dll) atau root layout wrapper.
+  2. Kemungkinan besar ada komponen spesifik yang merender overlay/modal secara tidak sengaja (stuck) dengan `z-index` tinggi atau `pointer-events: none`.
+  3. Tersangka utama: `app/providers.tsx` (wallet adapter wrapper) atau komponen `TokenSelectorModal` / `SwapCard` yang memiliki state `isOpen` yang salah.
+- **Solution / Next Action**: 
+  1. Audit file `app/providers.tsx` dan bandingkan dengan `components/app-providers.tsx` di reference project.
+  2. Cek apakah ada modal atau backdrop yang ter-render secara default tanpa kondisi `if (!isOpen) return null`.
+  3. Gunakan DevTools untuk inspect elemen spesifik di sekitar tombol yang tidak bisa diklik.
