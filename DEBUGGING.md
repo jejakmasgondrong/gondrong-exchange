@@ -143,3 +143,15 @@ This file documents errors encountered during the development of Gondrong Exchan
 - **Solution / Next Action**: 
   1. Test the application in an Incognito/Private window with all extensions disabled.
   2. Apply "Nuclear CSS" (`* { pointer-events: auto !important; }`) to `globals.css` to forcefully override any blocking styles.
+
+  ---
+## 2026-07-19 - Strategic Isolation: Migrating Bug Fix to Separate Repository
+
+- **Context**: After extensive debugging of the unresponsive button issue (suspected overlay/z-index conflict from Wallet Adapter), multiple files (`layout.tsx`, `globals.css`, `providers.tsx`) were modified. While these changes helped isolate the problem, they risked destabilizing the completed UI/UX of the main landing page.
+- **Decision**: To maintain the integrity of the `gondrong-exchange` main branch and ensure the visual landing page remains production-ready, a strategic decision was made to pause direct modifications.
+- **Action Plan**:
+  1. Reverted `gondrong-exchange` to its stable visual state (freezing the UI).
+  2. Created a minimal, isolated repository (`gondrong-wallet-test`) based on a known-working reference project.
+  3. The root cause analysis and final fix for the `pointer-events`/overlay blocking issue will be conducted in the isolated repo.
+  4. Once the fix is verified in the sandbox, it will be cleanly ported back to `gondrong-exchange`.
+- **Why this matters**: This approach demonstrates risk management, separation of concerns, and the ability to use Minimal Reproducible Examples (MRE) to solve complex environment-specific bugs without breaking existing features.
