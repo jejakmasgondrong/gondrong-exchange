@@ -174,3 +174,25 @@ This file documents errors encountered during the development of Gondrong Exchan
   2. **Upgrade Fitur (Step 6)**: Mengganti hardcoded `EXCHANGE_RATE` dengan integrasi **Jupiter Price API** (`https://price.jup.ag/v4/price`).
   3. Menambahkan `useEffect` untuk fetch harga SOL/USDC secara real-time setiap 30 detik, dengan fallback aman jika API gagal.
 - **Status**: UI Swap sekarang 100% production-ready secara logika dan data fetching. Known click-blocking bug tetap didokumentasikan dan akan difix via isolated repo (`gondrong-wallet-test`).
+
+---
+## 2026-07-19 - ROOT CAUSE FOUND: Button Elements Blocked, Anchor Tags Work
+
+- **Critical Discovery**: In isolated test repo (`gondrong-wallet-test`), discovered that:
+  - `<a>` tags (Solana Docs link) → ✅ **CLICKABLE**
+  - `<button>` elements → ❌ **NOT CLICKABLE** (no alert triggered)
+  
+- **Root Cause**: Next.js setup or Solana wallet adapter configuration is blocking native `<button>` elements from receiving click events, while `<a>` tags work normally.
+
+- **Solution Strategy**: 
+  1. Replace critical interactive `<button>` elements with `<a>` tags styled as buttons
+  2. Use `onClick={(e) => { e.preventDefault(); /* logic */ }}` pattern
+  3. Apply `role="button"` and `tabIndex={0}` for accessibility
+  4. Or use `<div>` with proper ARIA attributes as alternative
+
+- **Files to Update in gondrong-exchange**:
+  - `components/SwapCard.tsx` - Replace token selector buttons with `<a>` tags
+  - `app/page.tsx` - Replace WalletMultiButton wrapper if needed
+  - Any other interactive button components
+
+- **Testing**: Verified in isolated environment with minimal reproducible example
