@@ -133,3 +133,13 @@ This file documents errors encountered during the development of Gondrong Exchan
   1. Melakukan isolasi komponen dengan meng-comment out sementara `<SwapCard />` dan `<WalletMultiButton />` di `app/page.tsx`.
   2. Jika halaman menjadi bisa diklik, berarti bug ada di dalam komponen Swap/Modal.
   3. Jika masih tidak bisa, akan mencoba "Nuclear CSS" (`* { pointer-events: auto !important; }`) untuk memaksa semua elemen bisa diklik.
+
+  ---
+## 2026-07-19 - Component Isolation Failed, Suspecting Browser Extension or Extreme CSS Specificity
+- **Error**: Giant green test button with `z-[99999]` and `pointer-events: auto` remains completely unclickable even after disabling `SwapCard`, `WalletMultiButton`, and `WalletModalProvider`.
+- **Cause**: 
+  1. High probability of a browser extension (AdBlock, Dark Reader, Wallet Extension) injecting an invisible overlay.
+  2. Low probability of an extreme CSS specificity issue overriding inline styles.
+- **Solution / Next Action**: 
+  1. Test the application in an Incognito/Private window with all extensions disabled.
+  2. Apply "Nuclear CSS" (`* { pointer-events: auto !important; }`) to `globals.css` to forcefully override any blocking styles.
