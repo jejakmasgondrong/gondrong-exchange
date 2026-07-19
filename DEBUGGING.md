@@ -124,3 +124,12 @@ This file documents errors encountered during the development of Gondrong Exchan
 - **Solution / Next Action**: 
   1. Melakukan isolasi dengan meng-comment out sementara `WalletModalProvider` dan import CSS-nya di `app/providers.tsx`.
   2. Jika tombol kembali bisa diklik, berarti konfirmasi 100% masalah ada di Wallet Adapter UI. Solusinya adalah mengganti dengan custom modal atau memperbaiki z-index CSS wallet adapter.
+
+  ---
+## 2026-07-19 - Providers Fix Failed, Moving to Component Isolation
+- **Error**: Tombol masih tidak responsif setelah menonaktifkan `WalletModalProvider` di `app/providers.tsx`.
+- **Cause**: Masalah bukan dari Wallet Adapter UI overlay. Tersangka berikutnya adalah komponen kompleks yang kita tambahkan (`SwapCard`, `TokenSelectorModal`) atau ada konflik CSS spesifik di `app/page.tsx`.
+- **Solution / Next Action**: 
+  1. Melakukan isolasi komponen dengan meng-comment out sementara `<SwapCard />` dan `<WalletMultiButton />` di `app/page.tsx`.
+  2. Jika halaman menjadi bisa diklik, berarti bug ada di dalam komponen Swap/Modal.
+  3. Jika masih tidak bisa, akan mencoba "Nuclear CSS" (`* { pointer-events: auto !important; }`) untuk memaksa semua elemen bisa diklik.
