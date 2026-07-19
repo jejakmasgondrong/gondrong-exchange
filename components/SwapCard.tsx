@@ -17,16 +17,49 @@ export default function SwapCard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeModalSide, setActiveModalSide] = useState<"from" | "to">("from");
 
-  // State Input
+  // State Input & Price
   const [fromAmount, setFromAmount] = useState("");
   const [toAmount, setToAmount] = useState("");
   const [isSwapping, setIsSwapping] = useState(false);
   const [solBalance, setSolBalance] = useState<number>(0);
+  
+  // State untuk harga real-time (Default fallback: 145.50)
+  const [exchangeRate, setExchangeRate] = useState<number>(145.50);
+  const [isPriceLoading, setIsPriceLoading] = useState<boolean>(true);
 
-  // Dummy Exchange Rate (Nanti diganti API Jupiter di Step 7)
-  const EXCHANGE_RATE = 145.50; 
+  // 1. FETCH HARGA REAL-TIME DARI JUPITER API
+  useEffect(() => {
+    const fetchPrice = async () => {
+      try {
+        setIsPriceLoading(true);
+        // Jupiter Price API (Gratis, no auth required untuk basic usage)
+        // ID SOL: So11111111111111111111111111111111111111112
+        // ID USDC: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+        const response = await fetch(
+          "https://price.jup.ag/v4/price?ids=So11111111111111111111111111111111111111112&vsToken=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+        );
+        const data = await response.json();
+        
+        if (data.data && data.data["So11111111111111111111111111111111111111112"]) {
+          const price = data.data["So11111111111111111111111111111111111111112"].price;
+          setExchangeRate(price);
+          console.log("✅ Real-time SOL Price fetched:", price);
+        }
+      } catch (error) {
+        console.error("Failed to fetch price, using fallback:", error);
+        // Fallback tetap aman di 145.50 jika API down
+      } finally {
+        setIsPriceLoading(false);
+      }
+    };
 
-  // Ambil Saldo SOL
+    fetchPrice();
+    // Refresh harga setiap 30 detik
+    const interval = setInterval(fetchPrice, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // 2. Ambil Saldo SOL
   useEffect(() => {
     if (publicKey) {
       connection.getBalance(publicKey).then((bal) => {
@@ -37,11 +70,11 @@ export default function SwapCard() {
     }
   }, [publicKey, connection]);
 
-  // Kalkulasi Otomatis
+  // 3. Kalkulasi Otomatis berdasarkan Exchange Rate Real-time
   const handleFromAmountChange = (value: string) => {
     setFromAmount(value);
     if (value && !isNaN(parseFloat(value))) {
-      const calculated = parseFloat(value) * EXCHANGE_RATE;
+      const calculated = parseFloat(value) * exchangeRate;
       setToAmount(calculated.toFixed(4));
     } else {
       setToAmount("");
@@ -76,7 +109,7 @@ export default function SwapCard() {
     setIsSwapping(true);
     setTimeout(() => {
       setIsSwapping(false);
-      alert(`[Simulasi] Swap ${fromAmount} ${fromToken.symbol} to ${toAmount} ${toToken.symbol}`);
+      alert(`[Simulasi] Swap ${fromAmount} ${fromToken.symbol} to ${toAmount} ${toToken.symbol} @ rate ${exchangeRate}`);
       setFromAmount("");
       setToAmount("");
     }, 2000);
@@ -144,4 +177,61 @@ export default function SwapCard() {
         </div>
 
         {/* TO Section */}
-        <div className="bg-zinc-950/50 rounded-2xl p-4 border border-zinc-800/50 hover:border
+        <div className="bg-zinc-950/50 rounded-2xl p-4 border border-zinc-800/50 hover:border-zinc-700 transition-colors">
+          <div className="flex justify-between mb-2">
+            <span className="text-sm text-zinc-400">You receive</span>
+            <span className="text-sm text-zinc-400">Balance: {toToken.balance}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <input
+              type="text"
+              placeholder="0.0"
+              value={toAmount}
+              readOnly
+              className="w-full bg-transparent text-3xl font-semibold text-zinc-100 placeholder-zinc-600 focus:outline-none cursor-default"
+            />
+            <button 
+              onClick={() => openModal("to")}
+              className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-2 rounded-xl font-medium transition-colors shrink-0"
+            >
+              <img src={toToken.logo} alt={toToken.symbol} className="w-5 h-5 rounded-full" />
+              {toToken.symbol}
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Action Button */}
+        <button
+          onClick={handleSwap}
+          disabled={!connected || isSwapping || !fromAmount}
+          className={`w-full mt-4 py-4 rounded-2xl font-bold text-lg transition-all transform active:scale-95 ${
+            !connected
+              ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+              : isSwapping
+              ? "bg-purple-600/50 text-zinc-300 cursor-wait"
+              : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white shadow-lg shadow-purple-600/25"
+          }`}
+        >
+          {!connected ? "Connect Wallet to Swap" : isSwapping ? "Confirming in Wallet..." : "Swap"}
+        </button>
+
+        {/* Footer Info (Dinamis berdasarkan API) */}
+        <div className="mt-4 px-2 flex justify-between text-xs text-zinc-500">
+          <span>
+            {isPriceLoading ? "Fetching price..." : `Price: 1 ${fromToken.symbol} ≈ $${exchangeRate.toFixed(2)} ${toToken.symbol}`}
+          </span>
+          <span>Network Fee: ~0.000005 SOL</span>
+        </div>
+      </div>
+
+      {/* Render Modal */}
+      <TokenSelectorModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSelect={handleTokenSelect}
+        excludeSymbol={activeModalSide === "from" ? toToken.symbol : fromToken.symbol}
+      />
+    </>
+  );
+}
